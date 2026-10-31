@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<!-- translate="no" でブラウザの自動翻訳（黄色いハイライトの原因）を防止します -->
+<html lang="ja" translate="no" class="notranslate">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="google" content="notranslate">
+  <title>韋駄天麻雀</title>
+  
+  <!-- ▼ Google AdSense 審査用コード ▼ -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+  <!-- ▲ ここまで ▲ -->
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- シャープな日本語フォント(Noto Sans JP)と、近未来的な英語/数字フォント(Orbitron)を読み込み -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    font { background-color: transparent !important; box-shadow: none !important; }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #0d1b12;
+      color: #f8fafc;
+      overflow: hidden;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .font-cyber { font-family: 'Orbitron', 'Noto Sans JP', sans-serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    #portrait-warning { display: none; }
+    @media screen and (orientation: portrait) {
+      #portrait-warning { display: flex; }
+      #game-container, #home-screen, #ranking-screen { display: none !important; }
+    }
+    .pai-container {
+      display: flex; justify-content: center; align-items: center;
+      background-color: white; border-radius: 3px;
+      flex-shrink: 0; cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+    .pai-img {
+      width: 100%; height: 100%; object-fit: cover;
+      border-radius: 3px; pointer-events: none;
+    }
+    .ankan-facedown { filter: brightness(0.18) contrast(1.2); }
+    .tile-hand { width: 36px; height: 52px; }
+    .tile-river { width: 26px; height: 36px; }
+    .river-box {
+      display: flex; flex-wrap: wrap; align-content: flex-start;
+      width: calc(26px * 7); height: calc(36px * 3);
+    }
+    .action-btn {
+      width: 76px; height: 60px;
+      border-radius: 14px; border: 2px solid;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 15px; transition: all 0.1s;
+      cursor: pointer; user-select: none;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    .btn-kan { background: #4f46e5; border-color: #6366f1; color: white; box-shadow: 0 6px 0 #312e81, 0 10px 10px rgba(0,0,0,0.5); }
+    .btn-kan:active { transform: translateY(4px); box-shadow: 0 2px 0 #312e81, 0 4px 4px rgba(0,0,0,0.5); }
+    .btn-reach { background: #10b981; border-color: #34d399; color: white; box-shadow: 0 6px 0 #065f46, 0 10px 10px rgba(0,0,0,0.5); }
+    .btn-reach:active { transform: translateY(4px); box-shadow: 0 2px 0 #065f46, 0 4px 4px rgba(0,0,0,0.5); }
+    .btn-reach-select {
+      background: #f59e0b; border-color: #fbbf24; color: #020617; text-shadow: none;
+      box-shadow: 0 6px 0 #78350f, 0 0 15px rgba(245,158,11,0.8);
+      animation: btn-pulse 0.8s infinite alternate;
+    }
+    @keyframes btn-pulse { 0% { filter: brightness(1); } 100% { filter: brightness(1.2); box-shadow: 0 6px 0 #78350f, 0 0 25px rgba(245,158,11,1); } }
+    .btn-reach-select:active { transform: translateY(4px); box-shadow: 0 2px 0 #78350f, 0 0 10px rgba(245,158,11,0.8); }
+    .btn-reach-active {
+      background: #b91c1c; border-color: #ef4444; color: white;
+      box-shadow: inset 0 6px 8px rgba(0,0,0,0.6);
+      transform: translateY(6px); pointer-events: none;
+    }
+    .btn-tsumo { background: #eab308; border-color: #facc15; color: #020617; text-shadow: none; box-shadow: 0 6px 0 #78350f, 0 10px 10px rgba(0,0,0,0.5); }
+    .btn-tsumo:active { transform: translateY(4px); box-shadow: 0 2px 0 #78350f, 0 4px 4px rgba(0,0,0,0.5); }
+    @media (max-height: 420px) {
+      .tile-hand { width: 30px; height: 44px; }
+      .tile-river { width: 22px; height: 30px; }
+      .river-box { width: calc(22px * 7); height: calc(30px * 3); }
+      .action-btn { width: 64px; height: 50px; font-size: 12px; border-radius: 12px; }
+    }
+    @keyframes penalty-shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-5px); }
+      40%, 80% { transform: translateX(5px); }
+    }
+    .penalty-anim { animation: penalty-shake 0.4s ease-in-out; color: #ef4444 !important; }
+    @keyframes floating-damage {
+      0% { transform: translate(-50%, 0) scale(0.5); opacity: 0; }
+      15% { transform: translate(-50%, -30px) scale(1.2); opacity: 1; }
+      80% { transform: translate(-50%, -60px) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, -80px) scale(0.8); opacity: 0; }
+    }
+    .floating-text {
+      position: absolute; top: 45%; left: 50%; pointer-events: none;
+      animation: floating-damage 1.2s ease-out forwards;
+      z-index: 100; white-space: nowrap; text-shadow: 0 4px 15px rgba(0,0,0,0.9), 0 0 5px rgba(0,0,0,0.5);
+    }
+    @keyframes count-pop {
+      0% { transform: scale(0.3); opacity: 0; }
+      40% { transform: scale(1.2); opacity: 1; }
+      60% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    .count-pop-anim { animation: count-pop 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+    .cyber-bg {
+      background-color: #071216;
+      background-image: 
+        radial-gradient(circle at 50% 30%, #0c333a 0%, #071216 60%),
+        linear-gradient(135deg, rgba(0,255,200,0.03) 0%, transparent 50%, rgba(0,255,200,0.03) 100%);
+    }
+    .cyber-btn {
+      transform: skewX(-20deg); position: relative; overflow: hidden;
+      border: 2px solid; background: rgba(0, 0, 0, 0.4);
+      transition: all 0.2s ease-out; cursor: pointer; user-select: none;
+    }
+    .cyber-btn:active { transform: skewX(-20deg) scale(0.95); }
+    .cyber-btn-inner {
+      transform: skewX(20deg); display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 100%;
+    }
+    .cyber-btn-blue { border-color: #3b82f6; box-shadow: 0 0 10px rgba(59,130,246,0.6), inset 0 0 10px rgba(59,130,246,0.3); text-shadow: 0 0 5px #60a5fa; }
+    .cyber-btn-red { border-color: #ef4444; box-shadow: 0 0 10px rgba(239,68,68,0.6), inset 0 0 10px rgba(239,68,68,0.3); text-shadow: 0 0 5px #f87171; }
+    .cyber-btn-yellow { border-color: #eab308; box-shadow: 0 0 10px rgba(234,179,8,0.6), inset 0 0 10px rgba(234,179,8,0.3); text-shadow: 0 0 5px #facc15; }
+    .cyber-btn-green { border-color: #10b981; box-shadow: 0 0 10px rgba(16,185,129,0.6), inset 0 0 10px rgba(16,185,129,0.3); text-shadow: 0 0 5px #34d399; }
+    .cyber-btn::before, .cyber-btn::after {
+      content: ''; position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #fff; box-shadow: 0 0 5px #fff;
+    }
+    .cyber-btn::before { top: 3px; left: 3px; }
+    .cyber-btn::after { bottom: 3px; right: 3px; }
+    .cyber-header-line {
+      display: flex; align-items: center; justify-content: center; gap: 15px;
+      color: #fff; text-shadow: 0 0 5px #0ff;
+    }
+    .cyber-header-line::before, .cyber-header-line::after {
+      content: ''; height: 2px; background: #0ff; box-shadow: 0 0 5px #0ff; width: 50px;
+    }
+    .stylish-table-bg {
+      background: 
+        radial-gradient(circle at 50% -20%, #1e3a5f, #070b14 80%),
+        linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 32px 32px, 32px 32px; background-position: center center;
+    }
+  </style>
+</head>
+<body class="h-[100dvh] w-full m-0 p-0 overflow-hidden bg-slate-950">
+
+  <div id="portrait-warning" class="fixed inset-0 bg-slate-950 z-50 flex-col items-center justify-center text-center p-6">
+    <div class="text-6xl mb-4 animate-bounce">📱🔄</div>
+    <h1 class="text-2xl font-black text-amber-400 mb-2">端末を横向きにしてください</h1>
+    <p class="text-slate-400 text-sm font-bold">本ゲームは横画面（ランドスケープ）専用です。</p>
+  </div>
+
+  <!-- ホーム画面 -->
+  <div id="home-screen" class="h-full w-full relative flex flex-col justify-center items-center p-4 overflow-hidden cyber-bg z-40">
+    <div class="absolute top-4 left-4 w-12 h-12 border-t-2 border-l-2 border-cyan-500/50 rounded-tl-lg pointer-events-none"></div>
+    <div class="absolute top-4 right-4 w-12 h-12 border-t-2 border-r-2 border-cyan-500/50 rounded-tr-lg pointer-events-none"></div>
+    <div class="absolute bottom-4 left-4 w-12 h-12 border-b-2 border-l-2 border-cyan-500/50 rounded-bl-lg pointer-events-none"></div>
+    <div class="absolute bottom-4 right-4 w-12 h-12 border-b-2 border-r-2 border-cyan-500/50 rounded-br-lg pointer-events-none"></div>
+
+    <div class="absolute top-5 right-5 z-50 flex items-center gap-3">
+      <button onclick="toggleSound()" class="sound-toggle-btn text-cyan-400 hover:text-cyan-200 bg-slate-900/60 p-2 rounded-lg border border-cyan-500/40 active:scale-95 transition-all shadow-[0_0_10px_rgba(0,255,255,0.2)]">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+        </svg>
+      </button>
+      <button onclick="lockFullScreenAndLandscape()" class="text-cyan-400 hover:text-cyan-200 bg-slate-900/60 p-2 rounded-lg border border-cyan-500/40 active:scale-95 transition-all shadow-[0_0_10px_rgba(0,255,255,0.2)]">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="text-center z-10 mb-6 mt-2 flex items-center justify-center gap-3 sm:gap-6 w-full px-2">
+      <svg class="w-16 sm:w-24 h-auto drop-shadow-md" viewBox="0 0 120 24" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="stickGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e2e8f0"/></linearGradient></defs><rect x="2" y="2" width="116" height="20" rx="4" fill="url(#stickGrad)" stroke="#cbd5e1" stroke-width="1"/><circle cx="60" cy="12" r="3.5" fill="#dc2626"/></svg>
+      <h1 class="text-4xl sm:text-5xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-red-400 to-red-700" style="-webkit-text-stroke: 1px #fff; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.6));">韋駄天麻雀</h1>
+      <svg class="w-16 sm:w-24 h-auto drop-shadow-md" viewBox="0 0 120 24" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="stickGrad2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e2e8f0"/></linearGradient></defs><rect x="2" y="2" width="116" height="20" rx="4" fill="url(#stickGrad2)" stroke="#cbd5e1" stroke-width="1"/><circle cx="60" cy="12" r="3.5" fill="#dc2626"/></svg>
+    </div>
+
+    <main class="w-full max-w-lg z-10 flex flex-col items-center">
+      <div class="cyber-header-line mb-4 font-black tracking-widest text-sm sm:text-base"><span class="text-cyan-400">≪</span> タイムアタック <span class="text-cyan-400">≫</span></div>
+      <div class="grid grid-cols-2 gap-4 sm:gap-6 w-full max-w-[400px] px-4">
+        <button onclick="startGame('normal')" class="cyber-btn cyber-btn-blue h-12 sm:h-14 w-full"><div class="cyber-btn-inner text-white font-black text-sm sm:text-base">ノーマル</div></button>
+        <button onclick="startGame('hard')" class="cyber-btn cyber-btn-red h-12 sm:h-14 w-full"><div class="cyber-btn-inner text-white font-black text-sm sm:text-base">ハード</div></button>
+        <button onclick="showRankingScreen()" class="cyber-btn cyber-btn-yellow h-12 sm:h-14 w-full"><div class="cyber-btn-inner text-white font-black text-sm sm:text-base">ランキング</div></button>
+        <button onclick="openRulesModal()" class="cyber-btn cyber-btn-green h-12 sm:h-14 w-full"><div class="cyber-btn-inner text-white font-black text-sm sm:text-base">遊び方</div></button>
+      </div>
+    </main>
+
+    <!-- ▼ 広告枠 (トップ画面下部) ▼ -->
+    <div class="absolute bottom-2 z-50 flex justify-center w-full">
+      <script src="https://adm.shinobi.jp/s/d27b0c12db66e8f016a176e374fbec31"></script>
+    </div>
+    <!-- ▲ ここまで ▲ -->
+  </div>
+
+  <!-- ルール・情報モーダル -->
+  <div id="rules-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-3xl flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-800/40">
+        <h2 class="text-base font-bold text-amber-400 flex items-center gap-2"><span>📖</span> 遊び方・規約・情報</h2>
+        <button onclick="closeRulesModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2">&times;</button>
+      </div>
+      <div class="p-5 overflow-y-auto space-y-4 text-xs text-slate-300 leading-relaxed no-scrollbar max-h-[70vh]">
+        <div class="bg-black/40 p-3 rounded-xl border border-white/10">
+           <h3 class="font-bold text-emerald-400 mb-2">🎲 遊び方</h3>
+           <p>5回和がるまでのタイムを競います。</p>
+           <p class="mt-1"><span class="text-blue-300 font-bold">ノーマル:</span> マンズの2から8を除いた牌を使用します。</p>
+           <p><span class="text-rose-300 font-bold">ハード:</span> 使うのはピンズとソーズのみです。</p>
+        </div>
+        <div class="bg-black/40 p-3 rounded-xl border border-white/10">
+          <h3 class="font-bold text-red-400 mb-2">🚨 ペナルティルール</h3>
+          <p class="font-bold text-amber-300 mb-2">以下の行為を行うとチョンボとなり、タイムに【+15秒】のペナルティが加算されて次の局へ進みます。</p>
+          <ul class="list-disc list-inside space-y-2 text-white">
+            <li><strong>誤カン:</strong> カンできない状態でカンボタンを押す。</li>
+            <li><strong>ノーテンリーチ:</strong> テンパイしていない状態でリーチボタンを押す。また、リーチ宣言時にテンパイを維持しない牌を切る。</li>
+            <li><strong>フリテンリーチ:</strong> 和がり牌が自分の河にある状態でリーチボタンを押す。</li>
+            <li><strong>誤ツモ:</strong> アガリの形になっていないのにツモボタンを押す。</li>
+          </ul>
+        </div>
+        <div class="bg-black/40 p-3 rounded-xl border border-white/10">
+          <h3 class="font-bold text-indigo-400 mb-2">👤 作者情報</h3>
+          <p>開発者: ろん X：<a href="https://x.com/ronronrororon" target="_blank" class="text-cyan-400 hover:underline">@ronronrororon</a></p>
+        </div>
+        <!-- ▼ AdSense審査対応 ▼ -->
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/50">
+          <h3 class="font-bold text-slate-400 mb-2 text-[11px]">📝 免責事項</h3>
+          <p class="text-[10px] text-slate-500 mb-3">当サイトのシミュレーターで表示される結果等は、実際の麻雀ゲームや現実での確率との完全な一致を保証するものではありません。当サイトの利用により生じたいかなる損害についても、運営者は一切の責任を負いません。</p>
+          <h3 class="font-bold text-slate-400 mb-2 text-[11px]">🛡️ プライバシーポリシー</h3>
+          <p class="text-[10px] text-slate-500">当サイトでは第三者配信の広告サービスを利用しています。広告配信事業者は、ユーザーの興味に応じた商品やサービスの広告を表示するため、当サイトや他サイトへのアクセスに関する情報「Cookie」を使用することがあります。このプロセスの詳細や情報が広告配信事業者に使用されないようにする方法については、<a href="https://policies.google.com/technologies/ads?hl=ja" target="_blank" class="text-cyan-600 hover:underline">Googleポリシーと規約</a>をご覧ください。</p>
+        </div>
+        <!-- ▲ ここまで ▲ -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ランキング画面 -->
+  <div id="ranking-screen" class="h-full w-full relative flex flex-row justify-center items-center p-2 sm:p-4 overflow-hidden bg-slate-950 z-40 hidden gap-2 sm:gap-6">
+    <div class="flex flex-col w-1/3 max-w-[200px] h-full justify-between">
+      <div class="flex flex-col items-center">
+        <h2 class="text-xl sm:text-2xl font-black text-amber-400 mt-2 mb-4 text-center drop-shadow-md">🏆 ランキング</h2>
+        <div class="flex flex-col space-y-2 w-full">
+          <button id="tab-normal" onclick="switchRankingTab('normal')" class="w-full py-2 rounded-lg bg-blue-600 text-white font-bold border-2 border-blue-400 shadow-lg transition-colors">ノーマル</button>
+          <button id="tab-hard" onclick="switchRankingTab('hard')" class="w-full py-2 rounded-lg bg-slate-800 text-slate-400 font-bold border-2 border-slate-600 shadow-md transition-colors">ハード</button>
+        </div>
+      </div>
+      <button onclick="hideRankingScreen()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl shadow-lg border border-slate-600 active:scale-95 transition-transform mt-auto mb-2">ホームへ戻る</button>
+    </div>
+    <div class="w-2/3 h-full max-w-lg bg-slate-900 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
+      <div class="flex-1 overflow-y-auto p-0 sm:p-2 no-scrollbar">
+        <table class="w-full text-left text-sm text-slate-200">
+          <thead>
+            <tr class="border-b border-slate-700 text-slate-400 sticky top-0 bg-slate-900 shadow-sm">
+              <th class="py-2 pl-2 w-12 text-center">順位</th>
+              <th class="py-2 px-2">名前</th>
+              <th class="py-2 pr-2 text-right">タイム</th>
+            </tr>
+          </thead>
+          <tbody id="ranking-list-body">
+            <tr><td colspan="3" class="text-center py-4 text-slate-500 text-xs">読み込み中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="countdown-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex flex-col items-center justify-center">
+    <div id="countdown-text" class="text-9xl font-black font-cyber text-transparent bg-clip-text bg-gradient-to-b from-cyan-300 to-blue-600 drop-shadow-[0_0_20px_rgba(0,255,255,0.8)]">3</div>
+  </div>
+
+  <!-- ゲームメイン画面 -->
+  <div id="game-container" class="h-full w-full relative flex flex-col justify-between p-1 sm:p-2 hidden stylish-table-bg">
+    <header class="w-full flex justify-between items-center px-2 py-1 sm:px-4 sm:py-1.5 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 shadow-lg z-20 flex-shrink-0">
+      <div class="flex items-center w-40 sm:w-48">
+        <div id="timer-box" class="flex items-center bg-rose-950/80 border border-rose-500/50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg shadow-inner transition-colors">
+          <span class="text-rose-400 mr-1 sm:mr-2 text-xs sm:text-sm">⏱</span>
+          <span id="timer-display" class="font-cyber font-black text-rose-100 text-sm sm:text-base w-20 sm:w-24 text-center tracking-widest">00:00.00</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <div class="px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-black tracking-widest bg-indigo-950/80 text-indigo-300 border border-indigo-500/40 shadow-inner">
+          アガリ: <span id="agari-counter" class="text-white text-sm sm:text-base ml-1 font-cyber">0/5</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-1.5 sm:space-x-2">
+        <button onclick="toggleSound()" class="sound-toggle-btn text-cyan-400 hover:text-cyan-200 bg-slate-800 hover:bg-slate-700 p-1.5 sm:p-2 rounded-lg border border-cyan-500/40 active:scale-95 transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 sm:w-5 sm:h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
+        </button>
+        <button onclick="showHomeScreen()" class="bg-slate-800 hover:bg-slate-700 text-rose-300 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold border border-rose-900 active:scale-95 transition-transform ml-1">ギブアップ</button>
+      </div>
+    </header>
+
+    <main class="flex-1 flex flex-col items-center justify-center relative overflow-hidden py-1">
+      <div class="p-2 bg-black/35 rounded-xl border border-white/5 backdrop-blur-sm shadow-inner relative mb-2 sm:mb-4">
+        <div id="player-river" class="river-box"></div>
+      </div>
+      <div class="flex flex-row items-center justify-center space-x-4 sm:space-x-8 z-30">
+        <button id="btn-kan" onclick="executeKanAction()" class="action-btn btn-kan"><span>カン</span></button>
+        <button id="btn-reach" onclick="toggleReachDeclare()" class="action-btn btn-reach"><span>リーチ</span></button>
+        <button id="btn-agari" onclick="executeTsumoAgari()" class="action-btn btn-tsumo"><span>ツモ</span></button>
+      </div>
+    </main>
+
+    <footer class="w-full relative flex items-end justify-center pb-1 sm:pb-3 px-2 z-20 flex-shrink-0 min-h-[50px] sm:min-h-[70px]">
+      <div class="flex items-end justify-center space-x-2 sm:space-x-3 overflow-x-auto no-scrollbar max-w-full z-20">
+        <div id="player-hand-container" class="flex items-end flex-shrink-0">
+          <div id="hand-tiles" class="flex gap-0"></div>
+          <div id="tsumo-spacer" class="w-2.5 flex-shrink-0 hidden"></div>
+          <div id="tsumo-tile" class="flex-shrink-0"></div>
+        </div>
+        <div id="side-naki-container" class="flex items-end space-x-2 flex-shrink-0">
+          <div id="side-ankan-list" class="flex space-x-1.5"></div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- リザルトモーダル -->
+  <div id="agari-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex flex-col items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-amber-500/80 rounded-3xl p-6 max-w-lg w-full shadow-[0_0_50px_rgba(245,158,11,0.3)] text-center relative overflow-hidden">
+      <h2 id="agari-title" class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 drop-shadow mb-6 transition-all">クリア！</h2>
+      <div id="ranking-input-container" class="hidden mb-6 bg-slate-800/50 p-4 rounded-xl border border-amber-500/30">
+        <p class="text-sm text-amber-300 font-bold mb-2">🎉 トップ10にランクイン！</p>
+        <p class="text-xs text-slate-300 mb-3">ランキングに載せる名前を入力してください</p>
+        <input type="text" id="ranking-name-input" placeholder="無名の雀士" maxlength="10" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-500 text-white text-sm mb-3 focus:outline-none focus:border-amber-500 text-center font-bold">
+      </div>
+      <div class="flex justify-center gap-2.5" id="agari-action-buttons"></div>
+    </div>
+    
+    <!-- ▼ 広告枠 (リザルトモーダル下部) ▼ -->
+    <div class="mt-4 flex justify-center w-full z-50">
+      <script src="https://adm.shinobi.jp/s/d27b0c12db66e8f016a176e374fbec31"></script>
+    </div>
+    <!-- ▲ ここまで ▲ -->
+  </div>
+
+  <script>
+    // 音楽設定
+    const gameBGM = new Audio('./bgm.mp3'); 
+    gameBGM.loop = true;
+    let isSoundOn = true;
+    function toggleSound() {
+      isSoundOn = !isSoundOn;
+      gameBGM.muted = !isSoundOn;
+      const pathOn = '<path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />';
+      const pathOff = '<path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />';
+      document.querySelectorAll('.sound-toggle-btn svg').forEach(svg => { svg.innerHTML = isSoundOn ? pathOn : pathOff; });
+    }
+
+    // ==========================================
+    // Cloudflare D1 ランキングAPI通信処理
+    // ==========================================
+    let rankingsData = { normal: [], hard: [] };
+    let currentRankingTab = 'normal';
+    let pendingRankingTime = 0;
+
+    // 初回ロード
+    window.addEventListener('DOMContentLoaded', () => {
+      loadRankings();
+    });
+
+    async function loadRankings() {
+      try {
+        const fetchMode = async (mode) => {
+          const res = await fetch(`/api/rankings?mode=${mode}`);
+          if (res.ok) {
+            rankingsData[mode] = await res.json();
+          }
+        };
+        await fetchMode('normal');
+        await fetchMode('hard');
+        if (!document.getElementById('ranking-screen').classList.contains('hidden')) {
+          renderRankingList();
+        }
+      } catch(e) {
+        console.error("Failed to load rankings", e);
+      }
+    }
+
+    function renderRankingList() {
+      const tbody = document.getElementById('ranking-list-body');
+      if(!tbody) return;
+      tbody.innerHTML = '';
+      const data = rankingsData[currentRankingTab];
+      if (!data || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-slate-500 text-xs">まだ記録がありません</td></tr>`;
+        return;
+      }
+      data.forEach((item, index) => {
+        const mins = Math.floor(item.time / 60000).toString().padStart(2, '0');
+        const secs = Math.floor((item.time % 60000) / 1000).toString().padStart(2, '0');
+        const ms = Math.floor((item.time % 1000) / 10).toString().padStart(2, '0');
+        
+        const tr = document.createElement('tr');
+        tr.className = "border-b border-slate-800/50";
+        let rankStr = index + 1;
+        if(rankStr === 1) rankStr = '🥇 1';
+        else if(rankStr === 2) rankStr = '🥈 2';
+        else if(rankStr === 3) rankStr = '🥉 3';
+
+        const safeName = item.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        
+        tr.innerHTML = `
+          <td class="py-2 pl-2 text-center font-bold ${index < 3 ? 'text-amber-400' : 'text-slate-300'}">${rankStr}</td>
+          <td class="py-2 px-2 font-bold text-white truncate max-w-[120px]">${safeName}</td>
+          <td class="py-2 pr-2 text-right font-cyber text-emerald-400">${mins}:${secs}.${ms}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function switchRankingTab(mode) {
+      currentRankingTab = mode;
+      document.getElementById('tab-normal').className = mode === 'normal' ? "w-full py-2 rounded-lg bg-blue-600 text-white font-bold border-2 border-blue-400 shadow-lg transition-colors" : "w-full py-2 rounded-lg bg-slate-800 text-slate-400 font-bold border-2 border-slate-600 shadow-md transition-colors";
+      document.getElementById('tab-hard').className = mode === 'hard' ? "w-full py-2 rounded-lg bg-rose-600 text-white font-bold border-2 border-rose-400 shadow-lg transition-colors" : "w-full py-2 rounded-lg bg-slate-800 text-slate-400 font-bold border-2 border-slate-600 shadow-md transition-colors";
+      renderRankingList();
+    }
+    
+    function showRankingScreen() {
+      document.getElementById('home-screen').classList.add('hidden');
+      document.getElementById('ranking-screen').classList.remove('hidden');
+      loadRankings(); // 開くたびに最新を取得
+      renderRankingList();
+    }
+    
+    function hideRankingScreen() { document.getElementById('ranking-screen').classList.add('hidden'); document.getElementById('home-screen').classList.remove('hidden'); }
+
+    async function submitRanking() {
+      const input = document.getElementById('ranking-name-input');
+      let name = input.value.trim();
+      if (!name) name = "無名の雀士";
+
+      const btn = document.getElementById('submit-rank-btn');
+      if(btn) { btn.disabled = true; btn.innerText = "送信中..."; }
+
+      try {
+        const res = await fetch('/api/rankings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: currentMode,
+            name: name,
+            time: pendingRankingTime
+          })
+        });
+
+        if (!res.ok) throw new Error("API error");
+        
+        await loadRankings();
+        showHomeScreen();
+      } catch(e) {
+        console.error("Save error", e);
+        showFloatingText('通信エラーが発生しました', 'text-red-500');
+        if(btn) { btn.disabled = false; btn.innerText = "登録してホームへ"; }
+      }
+    }
+
+    // --- ゲームロジック ---
+    const TILE_BASES = [
+      'p1','p2','p3','p4','p5','p6','p7','p8','p9',
+      's1','s2','s3','s4','s5','s6','s7','s8','s9',
+      'm1','m9','z1','z2','z3','z4','z5','z6','z7'
+    ];
+    let wall = [], hand = [], tsumoTile = null, river = [], ankans = [];
+    let isReach = false, isGameOver = false, currentTenpaiInfo = null, reachCandidates = [], isReachDeclaring = false;
+    let agariCount = 0, gameStartTime = 0, penaltyTime = 0, timerInterval = null, currentMode = 'normal';
+
+    window.onload = () => { showHomeScreen(); };
+
+    async function lockFullScreenAndLandscape() {
+      try {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) await elem.requestFullscreen();
+        else if (elem.webkitRequestFullscreen) await elem.webkitRequestFullscreen();
+        if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape');
+      } catch (e) { console.log(e); }
+    }
+
+    function showHomeScreen() {
+      gameBGM.pause(); gameBGM.currentTime = 0;
+      document.getElementById('agari-modal').classList.add('hidden');
+      document.getElementById('rules-modal').classList.add('hidden');
+      document.getElementById('ranking-screen').classList.add('hidden');
+      document.getElementById('countdown-modal').classList.add('hidden');
+      if (timerInterval) clearInterval(timerInterval);
+      document.getElementById('game-container').classList.add('hidden');
+      document.getElementById('home-screen').classList.remove('hidden');
+    }
+
+    function startGame(mode = 'normal') {
+      lockFullScreenAndLandscape(); 
+      document.getElementById('home-screen').classList.add('hidden');
+      const cdModal = document.getElementById('countdown-modal');
+      const cdText = document.getElementById('countdown-text');
+      cdModal.classList.remove('hidden');
+      let count = 3;
+      cdText.className = "text-9xl font-black font-cyber text-transparent bg-clip-text bg-gradient-to-b from-cyan-300 to-blue-600 drop-shadow-[0_0_20px_rgba(0,255,255,0.8)] count-pop-anim";
+      cdText.innerText = count;
+      const cdInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          cdText.innerText = count; cdText.classList.remove('count-pop-anim'); void cdText.offsetWidth; cdText.classList.add('count-pop-anim');
+        } else if (count === 0) {
+          cdText.innerText = "START!"; cdText.className = "text-7xl sm:text-8xl font-black font-cyber text-transparent bg-clip-text bg-gradient-to-b from-amber-300 to-orange-600 drop-shadow-[0_0_20px_rgba(245,158,11,0.8)] count-pop-anim";
+        } else {
+          clearInterval(cdInterval); cdModal.classList.add('hidden'); startActualGame(mode);
+        }
+      }, 1000);
+    }
+
+    function startActualGame(mode) {
+      currentMode = mode; agariCount = 0; penaltyTime = 0; gameStartTime = Date.now();
+      document.getElementById('agari-counter').innerText = `0/5`;
+      document.getElementById('timer-box').classList.remove('penalty-anim');
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 10);
+      document.getElementById('game-container').classList.remove('hidden');
+      gameBGM.currentTime = 0;
+      if (isSoundOn) gameBGM.play().catch(e=>console.log(e));
+      initRound();
+    }
+
+    function updateTimer() {
+      const elapsed = Date.now() - gameStartTime + penaltyTime;
+      const mins = Math.floor(elapsed / 60000).toString().padStart(2, '0');
+      const secs = Math.floor((elapsed % 60000) / 1000).toString().padStart(2, '0');
+      const ms = Math.floor((elapsed % 1000) / 10).toString().padStart(2, '0');
+      document.getElementById('timer-display').innerText = `${mins}:${secs}.${ms}`;
+    }
+
+    function addPenalty() {
+      penaltyTime += 15000;
+      const timerBox = document.getElementById('timer-box');
+      timerBox.classList.remove('penalty-anim'); void timerBox.offsetWidth; timerBox.classList.add('penalty-anim');
+      updateTimer();
+    }
+
+    function openRulesModal() { document.getElementById('rules-modal').classList.remove('hidden'); }
+    function closeRulesModal() { document.getElementById('rules-modal').classList.add('hidden'); }
+
+    function buildWall() {
+      const w = [];
+      const bases = currentMode === 'hard' ? TILE_BASES.filter(t => t.charAt(0) === 'p' || t.charAt(0) === 's') : TILE_BASES;
+      for (const t of bases) w.push(t, t, t, t);
+      for (let i = w.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [w[i], w[j]] = [w[j], w[i]];
+      }
+      return w;
+    }
+
+    function sortHand() { hand.sort((a, b) => a.localeCompare(b)); }
+
+    function initRound() {
+      wall = buildWall(); hand = wall.splice(0, 13); sortHand();
+      tsumoTile = null; river = []; ankans = []; isReach = false; isGameOver = false;
+      currentTenpaiInfo = null; reachCandidates = []; isReachDeclaring = false;
+      renderRiver(); renderSideNaki(); analyzeCurrentState(); doTsumo();
+    }
+
+    function nextRound() { document.getElementById('agari-modal').classList.add('hidden'); initRound(); }
+
+    function canReachAnkan(tile) {
+      if (!isReach || !tile) return false;
+      const countInHand = hand.filter(t => t === tile).length;
+      if (countInHand !== 3) return false;
+      const beforeTenpai = checkTenpai(hand, ankans);
+      if (!beforeTenpai || !beforeTenpai.machiList || beforeTenpai.machiList.length === 0) return false;
+      const afterHand = hand.filter(t => t !== tile);
+      const afterAnkans = [...ankans, tile];
+      const afterTenpai = checkTenpai(afterHand, afterAnkans);
+      if (!afterTenpai || !afterTenpai.machiList || afterTenpai.machiList.length === 0) return false;
+      const beforeMachi = [...beforeTenpai.machiList].sort();
+      const afterMachi = [...afterTenpai.machiList].sort();
+      if (beforeMachi.length !== afterMachi.length) return false;
+      for (let i = 0; i < beforeMachi.length; i++) if (beforeMachi[i] !== afterMachi[i]) return false;
+      return true;
+    }
+
+    function doTsumo() {
+      if (isGameOver) return;
+      if (wall.length === 0) wall = buildWall();
+      tsumoTile = wall.pop(); renderHand(); analyzeCurrentState();
+      if (isReach) {
+        setTimeout(() => {
+          if (isGameOver || !tsumoTile) return;
+          if (canAgariWithTsumo()) executeTsumoAgari();
+          else if (canReachAnkan(tsumoTile)) { showFloatingText('カン！', 'text-indigo-400'); executeKanAction(true); }
+          else actionDiscard(-1);
+        }, 200); 
+      }
+    }
+
+    function actionDiscard(handIndex) {
+      if (isGameOver || !tsumoTile) return;
+      if (isReachDeclaring) {
+        const matchedCandidate = reachCandidates.find(c => (c.type === 'hand' && c.index === handIndex) || (c.type === 'tsumo' && handIndex === -1));
+        if (matchedCandidate) {
+          if (matchedCandidate.isFuriten) { triggerChombo({ reason: 'furiten' }); return; }
+          isReach = true; isReachDeclaring = false; currentTenpaiInfo = matchedCandidate.tenpaiInfo;
+        } else { triggerChombo({ reason: 'invalid_reach_discard' }); return; }
+      }
+      let discardedTile = '';
+      if (handIndex === -1) { discardedTile = tsumoTile; tsumoTile = null; }
+      else { discardedTile = hand.splice(handIndex, 1)[0]; hand.push(tsumoTile); sortHand(); tsumoTile = null; }
+      river.push(discardedTile); renderRiver(); renderHand(); analyzeCurrentState();
+      if (river.length >= 21 && !isGameOver) { triggerChombo({ reason: 'ryukyoku' }); return; }
+      doTsumo();
+    }
+
+    function getKanableTiles() {
+      const counts = {}; const all = [...hand]; if (tsumoTile) all.push(tsumoTile);
+      all.forEach(t => counts[t] = (counts[t] || 0) + 1);
+      return Object.keys(counts).filter(b => counts[b] >= 4);
+    }
+
+    function executeKanAction(isAuto = false) {
+      if (isGameOver) return;
+      let targetTile = null;
+      if (isAuto) targetTile = tsumoTile;
+      else {
+        const kanables = getKanableTiles();
+        if (kanables.length === 0 || isReach) { triggerChombo({ reason: 'not_kan' }); return; }
+        targetTile = kanables[0];
+      }
+      if (!targetTile) return;
+      const extracted = []; let tsumoUsed = false;
+      if (tsumoTile === targetTile) { extracted.push(tsumoTile); tsumoTile = null; tsumoUsed = true; }
+      for (let i = hand.length - 1; i >= 0; i--) {
+        if (hand[i] === targetTile && extracted.length < 4) extracted.push(hand.splice(i, 1)[0]);
+      }
+      ankans.push(targetTile);
+      if (!tsumoUsed && tsumoTile) { hand.push(tsumoTile); sortHand(); tsumoTile = null; }
+      if (isReach) currentTenpaiInfo = checkTenpai(hand, ankans);
+      renderSideNaki(); renderHand();
+      setTimeout(() => { doTsumo(); }, isAuto ? 500 : 0);
+    }
+
+    function isFuriten(machiList, currentRiver) { return machiList.some(waitTile => currentRiver.includes(waitTile)); }
+
+    function toggleReachDeclare() {
+      if (isGameOver || isReach) return;
+      if (reachCandidates.length === 0) { triggerChombo({ reason: 'not_tenpai' }); return; }
+      isReachDeclaring = !isReachDeclaring; analyzeCurrentState(); renderHand();
+    }
+
+    function showFloatingText(text, colorClass) {
+      const container = document.getElementById('game-container');
+      const el = document.createElement('div'); el.className = `floating-text text-4xl sm:text-5xl font-black ${colorClass}`; el.innerHTML = text;
+      container.appendChild(el); setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 1200);
+    }
+
+    function triggerChombo(info) {
+      isGameOver = true; isReachDeclaring = false;
+      if (info.reason === 'ryukyoku') showFloatingText('💨 流局', 'text-slate-300');
+      else {
+        addPenalty(); let reasonText = "";
+        if (info.reason === 'not_tenpai') reasonText = 'ノーテンリーチ'; else if (info.reason === 'invalid_reach_discard') reasonText = 'リーチ打牌違反'; else if (info.reason === 'furiten') reasonText = 'フリテンリーチ'; else if (info.reason === 'not_agari') reasonText = '誤ツモ'; else if (info.reason === 'not_kan') reasonText = '誤カン'; else reasonText = 'チョンボ';
+        showFloatingText(`🚨 ${reasonText}<br><span class="text-2xl text-red-300 drop-shadow-md font-cyber">+15秒</span>`, 'text-red-500 text-center leading-tight');
+      }
+      setTimeout(() => { nextRound(); }, 1200);
+    }
+
+    function getReachCandidates() {
+      if (!tsumoTile || isReach) return [];
+      const candidates = []; const checked = new Set();
+      hand.forEach((tile, idx) => {
+        if (checked.has(tile)) return; checked.add(tile);
+        const testHand = [...hand]; testHand.splice(idx, 1); testHand.push(tsumoTile);
+        const tenpaiInfo = checkTenpai(testHand, ankans);
+        if (tenpaiInfo) {
+          const furiten = isFuriten(tenpaiInfo.machiList, river);
+          hand.forEach((t, i) => { if (t === tile) candidates.push({ type: 'hand', index: i, tile: t, tenpaiInfo, isFuriten: furiten }); });
+        }
+      });
+      const tenpaiInfo = checkTenpai(hand, ankans);
+      if (tenpaiInfo) {
+        const furiten = isFuriten(tenpaiInfo.machiList, river);
+        candidates.push({ type: 'tsumo', index: -1, tile: tsumoTile, tenpaiInfo, isFuriten: furiten });
+      }
+      return candidates;
+    }
+
+    function analyzeCurrentState() {
+      if (!tsumoTile) return;
+      reachCandidates = getReachCandidates(); currentTenpaiInfo = checkTenpai(hand, ankans);
+      const reachBtn = document.getElementById('btn-reach');
+      if (isReach) { reachBtn.className = 'action-btn btn-reach-active'; reachBtn.innerHTML = `<span>リーチ中</span>`; }
+      else if (isReachDeclaring) { reachBtn.className = 'action-btn btn-reach-select'; reachBtn.innerHTML = `<span>選択中</span>`; }
+      else { reachBtn.className = 'action-btn btn-reach'; reachBtn.innerHTML = `<span>リーチ</span>`; }
+    }
+
+    function canAgariWithTsumo() {
+      if (!tsumoTile) return false;
+      const fullHand = [...hand, tsumoTile]; const patterns = getAllPatterns(fullHand, ankans);
+      return patterns.length > 0;
+    }
+
+    function executeTsumoAgari() {
+      if (isGameOver || !tsumoTile) return;
+      if (!canAgariWithTsumo()) { triggerChombo({ reason: 'not_agari' }); return; }
+      isGameOver = true; agariCount++; document.getElementById('agari-counter').innerText = `${agariCount}/5`;
+      if (agariCount >= 5) {
+        gameBGM.pause();
+        const modal = document.getElementById('agari-modal'); const titleBox = document.getElementById('agari-title'); const actionBox = document.getElementById('agari-action-buttons');
+        if (timerInterval) clearInterval(timerInterval);
+        const elapsed = Date.now() - gameStartTime + penaltyTime; pendingRankingTime = elapsed;
+        const mins = Math.floor(elapsed / 60000).toString().padStart(2, '0'); const secs = Math.floor((elapsed % 60000) / 1000).toString().padStart(2, '0'); const ms = Math.floor((elapsed % 1000) / 10).toString().padStart(2, '0');
+        titleBox.innerHTML = `🎉 クリア！<br><span class="text-2xl font-bold text-white block mt-4">タイム: <span class="text-rose-400 font-cyber">${mins}:${secs}.${ms}</span></span>`;
+        
+        const currentRanks = rankingsData[currentMode] || [];
+        // トップ10に入るかチェック（データが10件未満、または最下位より速い場合）
+        const isRanked = currentRanks.length < 10 || elapsed < currentRanks[currentRanks.length - 1].time;
+
+        const rankInputBox = document.getElementById('ranking-input-container');
+        if (isRanked) {
+          rankInputBox.classList.remove('hidden');
+          document.getElementById('ranking-name-input').value = '';
+          actionBox.innerHTML = `<button id="submit-rank-btn" onclick="submitRanking()" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 text-white font-black px-6 py-4 rounded-xl text-lg shadow-lg active:scale-95 transition-transform">登録してホームへ</button>`;
+        } else {
+          rankInputBox.classList.add('hidden');
+          actionBox.innerHTML = `<button onclick="showHomeScreen()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 text-slate-950 font-black px-6 py-4 rounded-xl text-lg shadow-lg active:scale-95 transition-transform">ホームへ戻る</button>`;
+        }
+
+        titleBox.classList.add('mb-6'); modal.classList.remove('hidden');
+      } else {
+        showFloatingText('✨ ツモ！ ✨', 'text-amber-400'); setTimeout(() => { nextRound(); }, 1200);
+      }
+    }
+
+    function createTileDOM(tileId, type = 'hand') {
+      const div = document.createElement('div'); div.className = `pai-container ${type === 'river' ? 'tile-river' : 'tile-hand'}`;
+      const img = document.createElement('img'); img.src = `./pai/${tileId}.png`; img.className = 'pai-img';
+      img.onerror = () => { img.style.display = 'none'; div.className += ' bg-slate-200 border border-slate-400 text-[10px] text-black font-bold flex items-center justify-center'; div.innerText = tileId; };
+      div.appendChild(img); return div;
+    }
+
+    function renderHand() {
+      const handBox = document.getElementById('hand-tiles'); handBox.innerHTML = '';
+      hand.forEach((tileId, idx) => { const dom = createTileDOM(tileId, 'hand'); dom.onclick = () => { if (!isReach) actionDiscard(idx); }; handBox.appendChild(dom); });
+      const tsumoBox = document.getElementById('tsumo-tile'); const spacer = document.getElementById('tsumo-spacer'); tsumoBox.innerHTML = '';
+      if (tsumoTile) { spacer.classList.remove('hidden'); const dom = createTileDOM(tsumoTile, 'hand'); dom.onclick = () => { if (!isReach) actionDiscard(-1); }; tsumoBox.appendChild(dom); }
+      else { spacer.classList.add('hidden'); }
+    }
+
+    function renderRiver() { const riverBox = document.getElementById('player-river'); riverBox.innerHTML = ''; river.forEach(t => riverBox.appendChild(createTileDOM(t, 'river'))); }
+    function renderSideNaki() {
+      const ankanBox = document.getElementById('side-ankan-list'); ankanBox.innerHTML = '';
+      ankans.forEach(base => {
+        const group = document.createElement('div'); group.className = 'flex gap-0';
+        for (let i = 0; i < 4; i++) { const dom = createTileDOM(base, 'hand'); if (i === 0 || i === 3) dom.querySelector('img').classList.add('ankan-facedown'); group.appendChild(dom); }
+        ankanBox.appendChild(group);
+      });
+    }
+
+    function getHandCounts(arr) { const counts = {}; arr.forEach(t => counts[t] = (counts[t] || 0) + 1); return counts; }
+    function checkTenpai(handArray, ankansArray) {
+      const counts = getHandCounts(handArray); const machiList = []; const bases = currentMode === 'hard' ? TILE_BASES.filter(t => t.charAt(0) === 'p' || t.charAt(0) === 's') : TILE_BASES;
+      for (const testTile of bases) {
+        if ((counts[testTile] || 0) >= 4 || ankansArray.includes(testTile)) continue;
+        const testHand = [...handArray, testTile]; const patterns = getAllPatterns(testHand, ankansArray);
+        if (patterns.length > 0) machiList.push(testTile);
+      }
+      if (machiList.length > 0) return { machiList }; return null;
+    }
+    function getAllPatterns(handArray, ankansArray) {
+      const counts = getHandCounts(handArray); const patterns = [];
+      if (ankansArray.length === 0 && isKokushi(counts)) return [{ type: 'kokushi' }];
+      if (ankansArray.length === 0 && isChiitoitsu(counts)) patterns.push({ type: 'chiitoitsu' });
+      for (const headBase in counts) {
+        if (counts[headBase] >= 2) {
+          const tempCounts = { ...counts }; tempCounts[headBase] -= 2; const res = []; findMentsu(tempCounts, [], res);
+          res.forEach(m => patterns.push({ type: 'normal' }));
+        }
+      }
+      return patterns;
+    }
+    function findMentsu(counts, currentMentsu, results) {
+      let firstTile = null; for (const b of Object.keys(counts).sort()) { if (counts[b] > 0) { firstTile = b; break; } }
+      if (!firstTile) { results.push([...currentMentsu]); return; }
+      if (counts[firstTile] >= 3) {
+        counts[firstTile] -= 3; currentMentsu.push({ type: 'kotsu', tile: firstTile, isKan: false });
+        findMentsu(counts, currentMentsu, results); currentMentsu.pop(); counts[firstTile] += 3;
+      }
+      const suit = firstTile.charAt(0); const num = parseInt(firstTile.charAt(1));
+      if (['m', 'p', 's'].includes(suit) && num <= 7) {
+        const t2 = suit + (num + 1); const t3 = suit + (num + 2);
+        if (counts[t2] > 0 && counts[t3] > 0) {
+          counts[firstTile]--; counts[t2]--; counts[t3]--; currentMentsu.push({ type: 'shuntsu', tile: firstTile });
+          findMentsu(counts, currentMentsu, results); currentMentsu.pop(); counts[firstTile]++; counts[t2]++; counts[t3]++;
+        }
+      }
+    }
+    function isChiitoitsu(counts) { let pairs = 0; for (const b in counts) pairs += Math.floor(counts[b] / 2); return pairs === 7; }
+    function isKokushi(counts) { const yaochu = ['m1','m9','p1','p9','s1','s9','z1','z2','z3','z4','z5','z6','z7']; let pair = false; for (const t of yaochu) { if (!counts[t] || counts[t] === 0) return false; if (counts[t] >= 2) pair = true; } return pair; }
+
+    window.startGame = startGame; window.showHomeScreen = showHomeScreen; window.openRulesModal = openRulesModal; window.closeRulesModal = closeRulesModal; window.executeKanAction = executeKanAction; window.toggleReachDeclare = toggleReachDeclare; window.executeTsumoAgari = executeTsumoAgari; window.showRankingScreen = showRankingScreen; window.hideRankingScreen = hideRankingScreen; window.switchRankingTab = switchRankingTab; window.submitRanking = submitRanking; window.lockFullScreenAndLandscape = lockFullScreenAndLandscape; window.toggleSound = toggleSound;
+  </script>
+</body>
+</html>
